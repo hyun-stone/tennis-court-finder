@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>테니스장 & 주변 맛집/카페 추천</title>
+    
+    <!-- Favicon 설정 -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎾</text></svg>">
+    <link rel="shortcut icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎾</text></svg>">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-area {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .search-input {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .validation-message {
+            margin-top: 10px;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .validation-error {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+
+        .validation-success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+
+
+
+        /* 필터 태그 스타일 */
+        .place-details {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .filter-tag {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+        }
+
+        .filter-tag.indoor {
+            background: #2196F3;
+        }
+
+        .filter-tag.outdoor {
+            background: #4CAF50;
+        }
+
+        /* 추가 정보 태그 스타일 */
+        .info-tag {
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            margin-right: 5px;
+        }
+
+        .info-tag.category {
+            background: #FF6B35;
+        }
+
+
+
+        .info-tag.rating {
+            background: #FFD93D;
+            color: #333;
+        }
+
+
+
+
+
+        .input-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        #location-input {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            width: 300px;
+            max-width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        #location-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .recent-searches {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .recent-search-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .recent-search-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-search-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .recent-search-text {
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .recent-search-remove {
+            color: #999;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            background: #f0f0f0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .recent-search-remove:hover {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        #search-btn {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        #search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        #search-btn:active {
+            transform: translateY(0);
+        }
+
+        .map-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        #map {
+            width: 100%;
+            height: 500px;
+        }
+
+        .recommend-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+        }
+
+        .recommend-list {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .list-header h2 {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .tennis-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tennis-filter label {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.85rem;
+            color: #666;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .tennis-filter input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .marker-toggle-inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .marker-toggle-inline label {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.85rem;
+            color: #666;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .marker-toggle-inline input[type="checkbox"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+
+
+
+
+        .recommend-list ul {
+            list-style: none;
+        }
+
+        .recommend-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .recommend-list li:last-child {
+            border-bottom: none;
+        }
+
+        .recommend-list li:hover {
+            background-color: #f8f9fa;
+        }
+
+        .recommend-list li.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            margin: 5px 0;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .recommend-list li.selected .place-name {
+            color: white;
+        }
+
+        .recommend-list li.selected .place-address {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .recommend-list li.selected .filter-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .recommend-list li.selected .detail-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .recommend-list li.selected .detail-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .recommend-list li.selected-food {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-radius: 8px;
+            margin: 5px 0;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .recommend-list li.selected-food .place-name {
+            color: white;
+        }
+
+        .recommend-list li.selected-food .place-address {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .recommend-list li.selected-food .info-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .recommend-list li.selected-food .detail-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .recommend-list li.selected-food .detail-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .recommend-list li.selected-cafe {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-radius: 8px;
+            margin: 5px 0;
+            padding: 15px;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .recommend-list li.selected-cafe .place-name {
+            color: white;
+        }
+
+        .recommend-list li.selected-cafe .place-address {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .recommend-list li.selected-cafe .info-tag {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .recommend-list li.selected-cafe .detail-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .recommend-list li.selected-cafe .detail-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .place-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .place-address {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .marker-toggle {
+            display: flex;
+            gap: 20px;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+        }
+
+        /* 반응형 디자인 */
+        @media (max-width: 768px) {
+            .recommend-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .marker-toggle {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-end;
+            }
+            
+            .search-input {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .input-container {
+                width: 100%;
+            }
+            
+            #location-input {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .recent-searches {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .list-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .tennis-filter {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .marker-toggle-inline {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+        .marker-toggle label {
+            font-size: 1rem;
+            color: #333;
+            cursor: pointer;
+        }
+
+        /* 상세보기 버튼 스타일 */
+        .detail-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+            transition: background-color 0.3s;
+        }
+
+        .detail-btn:hover {
+            background: #45a049;
+        }
+
+        /* 목록 항목 레이아웃 */
+        .recommend-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s;
+        }
+
+        .place-info {
+            flex: 1;
+        }
+
+
+
+
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .search-input {
+                flex-direction: column;
+            }
+
+            #location-input {
+                width: 100%;
+            }
+
+            .recommend-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            #map {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎾 테니스장 & 주변 맛집/카페 추천</h1>
+            <p>원하는 지역을 입력하면 테니스장과 주변 맛집, 카페를 찾아드려요!</p>
+        </div>
+
+        <div class="search-area">
+            <div class="search-input">
+                <div class="input-container">
+                    <input type="text" id="location-input" placeholder="지역을 입력하세요 (예: 잠실, 강남, 홍대)">
+                    <div id="recent-searches" class="recent-searches"></div>
+                </div>
+                <button id="search-btn">🔍 검색하기</button>
+            </div>
+            
+            <div id="validation-message" class="validation-message"></div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+
+        <div class="recommend-container">
+            <div class="recommend-list">
+                <div class="list-header">
+                    <h2>🎾 테니스장 목록</h2>
+                    <div class="tennis-filter">
+                        <label><input type="checkbox" id="filter-indoor" checked> 실내</label>
+                        <label><input type="checkbox" id="filter-outdoor" checked> 실외</label>
+                    </div>
+                </div>
+                <ul id="tennis-list">
+                    <li class="loading">지역을 검색해보세요!</li>
+                </ul>
+            </div>
+            <div class="recommend-list">
+                <div class="list-header">
+                    <h2>🍽️ 맛집 추천</h2>
+                    <div class="marker-toggle-inline">
+                        <label><input type="checkbox" id="toggle-food-inline"> 🍽️ 마커</label>
+                    </div>
+                </div>
+                <ul id="food-list">
+                    <li class="loading">지역을 검색해보세요!</li>
+                </ul>
+            </div>
+            <div class="recommend-list">
+                <div class="list-header">
+                    <h2>☕ 카페 추천</h2>
+                    <div class="marker-toggle-inline">
+                        <label><input type="checkbox" id="toggle-cafe-inline"> ☕ 마커</label>
+                    </div>
+                </div>
+                <ul id="cafe-list">
+                    <li class="loading">지역을 검색해보세요!</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 카카오맵 API -->
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=e04c1a4270a5ea619034c29d0a728283&libraries=services"></script>
+    
+    <script>
+        // 전역 변수
+        let map;
+        let markers = [];
+        let foodMarkers = [];
+        let cafeMarkers = [];
+        let places = [];
+        let allTennisPlaces = []; // 모든 테니스장 데이터 저장
+        let currentFilters = {
+            indoor: true,
+            outdoor: true
+        };
+        let recentSearches = []; // 최근 검색어 저장
+        let selectedTennisCourt = null; // 선택된 테니스장
+        let selectedFood = null; // 선택된 맛집
+        let selectedCafe = null; // 선택된 카페
+
+        // 지도 초기화
+        function initMap() {
+            if (typeof kakao === 'undefined') {
+                console.error('카카오맵 API가 로드되지 않았습니다.');
+                document.getElementById('map').innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">카카오맵을 불러오는 중...</div>';
+                return false;
+            }
+            
+            try {
+                const mapContainer = document.getElementById('map');
+                const mapOption = {
+                    center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울 시청
+                    level: 7
+                };
+                map = new kakao.maps.Map(mapContainer, mapOption);
+                console.log('지도 초기화 성공');
+                return true;
+            } catch (error) {
+                console.error('지도 초기화 실패:', error);
+                document.getElementById('map').innerHTML = '<div style="padding: 20px; text-align: center; color: #c62828;">지도 로딩에 실패했습니다.</div>';
+                return false;
+            }
+        }
+
+
+
+        // 마커 제거
+        function removeMarkers() {
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+            foodMarkers.forEach(marker => marker.setMap(null));
+            foodMarkers = [];
+            cafeMarkers.forEach(marker => marker.setMap(null));
+            cafeMarkers = [];
+        }
+
+        // 마커 토글 표시 함수
+        function setMarkersVisible(markerArr, visible) {
+            markerArr.forEach(marker => marker.setMap(visible ? map : null));
+        }
+
+        // 모든 인포윈도우 닫기 함수
+        function closeAllInfowindows() {
+            // 테니스장 마커 인포윈도우 닫기
+            markers.forEach(marker => {
+                if (marker.infowindow) {
+                    marker.infowindow.close();
+                }
+            });
+            
+            // 맛집 마커 인포윈도우 닫기
+            foodMarkers.forEach(marker => {
+                if (marker.infowindow) {
+                    marker.infowindow.close();
+                }
+            });
+            
+            // 카페 마커 인포윈도우 닫기
+            cafeMarkers.forEach(marker => {
+                if (marker.infowindow) {
+                    marker.infowindow.close();
+                }
+            });
+        }
+
+        // 최근 검색어 저장
+        function saveRecentSearch(searchTerm) {
+            // 중복 제거
+            recentSearches = recentSearches.filter(term => term !== searchTerm);
+            // 맨 앞에 추가
+            recentSearches.unshift(searchTerm);
+            // 최대 5개까지만 저장
+            if (recentSearches.length > 5) {
+                recentSearches = recentSearches.slice(0, 5);
+            }
+            // 로컬 스토리지에 저장
+            localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+        }
+
+        // 최근 검색어 로드
+        function loadRecentSearches() {
+            const saved = localStorage.getItem('recentSearches');
+            if (saved) {
+                recentSearches = JSON.parse(saved);
+            }
+        }
+
+        // 최근 검색어 표시
+        function showRecentSearches() {
+            const container = document.getElementById('recent-searches');
+            if (recentSearches.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+
+            container.innerHTML = '';
+            recentSearches.forEach(term => {
+                const item = document.createElement('div');
+                item.className = 'recent-search-item';
+                item.innerHTML = `
+                    <span class="recent-search-text">${term}</span>
+                    <span class="recent-search-remove" onclick="removeRecentSearch('${term}')">×</span>
+                `;
+                item.addEventListener('click', function(e) {
+                    if (!e.target.classList.contains('recent-search-remove')) {
+                        document.getElementById('location-input').value = term;
+                        hideRecentSearches();
+                        searchLocation();
+                    }
+                });
+                container.appendChild(item);
+            });
+            container.style.display = 'block';
+        }
+
+        // 최근 검색어 숨기기
+        function hideRecentSearches() {
+            document.getElementById('recent-searches').style.display = 'none';
+        }
+
+        // 최근 검색어 삭제
+        function removeRecentSearch(term) {
+            recentSearches = recentSearches.filter(t => t !== term);
+            localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+            showRecentSearches();
+        }
+
+        // 선택된 테니스장 설정
+        function setSelectedTennisCourt(place) {
+            selectedTennisCourt = place;
+            updateTennisListSelection();
+        }
+
+        // 테니스장 목록 선택 상태 업데이트
+        function updateTennisListSelection() {
+            const tennisList = document.getElementById('tennis-list');
+            const items = tennisList.querySelectorAll('li');
+            
+            items.forEach((item, index) => {
+                if (selectedTennisCourt && allTennisPlaces[index] && 
+                    allTennisPlaces[index].place_name === selectedTennisCourt.place_name) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+        }
+
+        // 맛집 목록 선택 상태 업데이트
+        function updateFoodListSelection() {
+            const foodList = document.getElementById('food-list');
+            const items = foodList.querySelectorAll('li');
+            
+            items.forEach((item, index) => {
+                if (selectedFood && foodMarkers && foodMarkers[index] && 
+                    foodMarkers[index].place && foodMarkers[index].place.place_name === selectedFood.place_name) {
+                    item.classList.add('selected-food');
+                } else {
+                    item.classList.remove('selected-food');
+                }
+            });
+        }
+
+        // 카페 목록 선택 상태 업데이트
+        function updateCafeListSelection() {
+            const cafeList = document.getElementById('cafe-list');
+            const items = cafeList.querySelectorAll('li');
+            
+            items.forEach((item, index) => {
+                if (selectedCafe && cafeMarkers && cafeMarkers[index] && 
+                    cafeMarkers[index].place && cafeMarkers[index].place.place_name === selectedCafe.place_name) {
+                    item.classList.add('selected-cafe');
+                } else {
+                    item.classList.remove('selected-cafe');
+                }
+            });
+        }
+
+        // 테니스장 주변 맛집/카페 검색 함수
+        async function searchNearbyPlaces(tennisPlace) {
+            try {
+                console.log('테니스장 주변 검색 시작:', tennisPlace.place_name);
+                
+                // 맛집/카페 마커 토글 off 상태로 변경
+                const foodToggle = document.getElementById('toggle-food-inline');
+                const cafeToggle = document.getElementById('toggle-cafe-inline');
+                foodToggle.checked = false;
+                cafeToggle.checked = false;
+                
+                // 로딩 상태 표시
+                document.getElementById('food-list').innerHTML = '<li class="loading">주변 맛집 검색 중...</li>';
+                document.getElementById('cafe-list').innerHTML = '<li class="loading">주변 카페 검색 중...</li>';
+
+                // 기존 맛집/카페 마커 제거
+                foodMarkers.forEach(marker => marker.setMap(null));
+                foodMarkers = [];
+                cafeMarkers.forEach(marker => marker.setMap(null));
+                cafeMarkers = [];
+
+                // 테니스장 위치를 중심으로 주변 검색
+                const center = new kakao.maps.LatLng(tennisPlace.y, tennisPlace.x);
+                
+                // 주변 맛집 검색 (반경 1km)
+                console.log('주변 맛집 검색 중...');
+                const foodPlaces = await searchPlacesNearby(center, '맛집', 'FD6');
+                console.log('주변 맛집 검색 결과:', foodPlaces);
+                updateRecommendList(foodPlaces, 'food-list', 'food');
+
+                // 주변 카페 검색 (반경 1km)
+                console.log('주변 카페 검색 중...');
+                const cafePlaces = await searchPlacesNearby(center, '카페', 'CE7');
+                console.log('주변 카페 검색 결과:', cafePlaces);
+                updateRecommendList(cafePlaces, 'cafe-list', 'cafe');
+
+                // 새로운 마커 추가 (off 상태로)
+                addMarkers([], foodPlaces, cafePlaces);
+                
+                // 지도 중심을 테니스장으로 이동
+                map.setCenter(center);
+                map.setLevel(5);
+                
+                console.log('테니스장 주변 검색 완료');
+                
+            } catch (error) {
+                console.log('테니스장 주변 검색 실패:', error.message);
+                document.getElementById('food-list').innerHTML = '<li class="error">주변 맛집 검색에 실패했습니다.</li>';
+                document.getElementById('cafe-list').innerHTML = '<li class="error">주변 카페 검색에 실패했습니다.</li>';
+            }
+        }
+
+        // 두 지점 간의 거리 계산 (Haversine 공식)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // 지구의 반지름 (km)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                     Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                     Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c; // km 단위
+            return distance * 1000; // m 단위로 변환
+        }
+
+        // 주변 장소 검색 함수 (좌표 기반)
+        function searchPlacesNearby(center, keyword, category) {
+            return new Promise((resolve, reject) => {
+                const ps = new kakao.maps.services.Places();
+                
+                const options = {
+                    location: center,
+                    radius: 1000, // 1km 반경
+                    size: 15,
+                    page: 1
+                };
+                
+                if (category) {
+                    options.category_group_code = category;
+                }
+                
+                ps.keywordSearch(keyword, (data, status) => {
+                    if (status === kakao.maps.services.Status.OK) {
+                        // 반경 내 장소만 필터링
+                        const nearbyPlaces = data.filter(place => {
+                            const distance = calculateDistance(
+                                center.getLat(), center.getLng(),
+                                place.y, place.x
+                            );
+                            return distance <= 1000; // 1km 이내
+                        });
+                        
+                        resolve(nearbyPlaces);
+                    } else {
+                        reject(new Error('주변 검색에 실패했습니다.'));
+                    }
+                }, options);
+            });
+        }
+
+        // 테니스장 유형 분석 함수
+        function analyzeTennisPlace(place) {
+            const name = place.place_name.toLowerCase();
+            const address = place.address_name.toLowerCase();
+            const roadAddress = place.road_address_name ? place.road_address_name.toLowerCase() : '';
+            
+            // 실내/실외 판단
+            const isIndoor = name.includes('실내') || name.includes('indoor') || 
+                           address.includes('실내') || roadAddress.includes('실내') ||
+                           name.includes('체육관') || name.includes('스포츠센터');
+            const isOutdoor = name.includes('실외') || name.includes('outdoor') || 
+                            address.includes('실외') || roadAddress.includes('실외') ||
+                            name.includes('공원') || name.includes('테니스장');
+            
+
+            
+
+            
+            return {
+                isIndoor: isIndoor || (!isOutdoor && !isIndoor), // 기본값은 실내로 설정
+                isOutdoor: isOutdoor
+            };
+        }
+
+        // 필터 적용 함수
+        function applyFilters() {
+            // 현재 필터 상태 업데이트
+            currentFilters = {
+                indoor: document.getElementById('filter-indoor').checked,
+                outdoor: document.getElementById('filter-outdoor').checked
+            };
+
+            // 필터링된 테니스장 목록 생성
+            const filteredPlaces = allTennisPlaces.filter(place => {
+                const analysis = analyzeTennisPlace(place);
+                
+                // 유형 필터
+                if (!currentFilters.indoor && analysis.isIndoor) return false;
+                if (!currentFilters.outdoor && analysis.isOutdoor) return false;
+                
+                return true;
+            });
+
+            // 기존 맛집/카페 데이터 저장
+            const foodPlaces = foodMarkers.map(marker => marker.place);
+            const cafePlaces = cafeMarkers.map(marker => marker.place);
+            
+            // 테니스장 마커만 제거하고 다시 생성
+            markers.forEach(marker => marker.setMap(null));
+            markers = [];
+            
+            // 테니스장 마커만 다시 추가
+            filteredPlaces.forEach((place, idx) => {
+                const marker = new kakao.maps.Marker({
+                    position: new kakao.maps.LatLng(place.y, place.x),
+                    map: map // 테니스장은 기본 표시
+                });
+
+                const markerImageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+                const imageSize = new kakao.maps.Size(21, 35);
+                const markerImage = new kakao.maps.MarkerImage(markerImageSrc, imageSize);
+                marker.setImage(markerImage);
+
+                const infowindow = new kakao.maps.InfoWindow({
+                    content: `<div style="padding:8px;font-size:12px;min-width:200px;">
+                        <div style="font-weight:bold;margin-bottom:4px;">🎾 ${place.place_name}</div>
+                        ${place.phone ? `<div style="color:#666;font-size:11px;margin-bottom:2px;">📞 ${place.phone}</div>` : ''}
+                    </div>`
+                });
+                kakao.maps.event.addListener(marker, 'click', function() {
+                    // 모든 인포윈도우 먼저 닫기
+                    closeAllInfowindows();
+                    // 해당 인포윈도우 열기
+                    infowindow.open(map, marker);
+                });
+
+                // 마커에 인포윈도우 연결
+                marker.infowindow = infowindow;
+                marker.place = place; // place 데이터 저장
+                markers.push(marker);
+            });
+            
+            // 목록 업데이트
+            updateTennisList(filteredPlaces);
+            
+            console.log(`필터 적용 완료: ${filteredPlaces.length}개 테니스장 표시`);
+        }
+
+
+
+        // 장소 검색
+        function searchPlaces(keyword, category) {
+            return new Promise((resolve, reject) => {
+                const ps = new kakao.maps.services.Places();
+                
+                const options = {
+                    size: 15, // 검색 결과 개수
+                    page: 1   // 페이지 번호
+                };
+                
+                if (category) {
+                    options.category_group_code = category;
+                }
+                
+                ps.keywordSearch(keyword, (data, status) => {
+                    if (status === kakao.maps.services.Status.OK) {
+                        // 추가 정보가 있는 경우 더 자세한 정보 가져오기
+                        const enrichedData = data.map(place => {
+                            // 카테고리 정보 정리
+                            if (place.category_name) {
+                                place.category_name = place.category_name.replace(/\s+/g, ' ').trim();
+                            }
+                            
+                            // 전화번호 정리
+                            if (place.phone) {
+                                place.phone = place.phone.replace(/\s+/g, '').trim();
+                            }
+                            
+                            return place;
+                        });
+                        
+                        resolve(enrichedData);
+                    } else {
+                        reject(new Error('검색에 실패했습니다.'));
+                    }
+                }, options);
+            });
+        }
+
+
+
+        // 지도에 마커 추가
+        function addMarkers(tennisPlaces, foodPlaces, cafePlaces) {
+            // 테니스장 마커 추가 (있는 경우만)
+            if (tennisPlaces && tennisPlaces.length > 0) {
+                tennisPlaces.forEach((place, idx) => {
+                    const marker = new kakao.maps.Marker({
+                        position: new kakao.maps.LatLng(place.y, place.x),
+                        map: map // 테니스장은 기본 표시
+                    });
+
+                    const markerImageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+                    const imageSize = new kakao.maps.Size(21, 35);
+                    const markerImage = new kakao.maps.MarkerImage(markerImageSrc, imageSize);
+                    marker.setImage(markerImage);
+                    console.log(`[마커] 테니스장 마커 이미지 설정:`, markerImageSrc);
+
+                    const infowindow = new kakao.maps.InfoWindow({
+                        content: `<div style="padding:8px;font-size:12px;min-width:200px;">
+                            <div style="font-weight:bold;margin-bottom:4px;">🎾 ${place.place_name}</div>
+                            ${place.phone ? `<div style="color:#666;font-size:11px;margin-bottom:2px;">📞 ${place.phone}</div>` : ''}
+                        </div>`
+                    });
+                    kakao.maps.event.addListener(marker, 'click', function() {
+                        // 모든 인포윈도우 먼저 닫기
+                        closeAllInfowindows();
+                        // 해당 인포윈도우 열기
+                        infowindow.open(map, marker);
+                    });
+
+                    // 마커에 인포윈도우 연결
+                    marker.infowindow = infowindow;
+                    marker.place = place; // place 데이터 저장
+                    markers.push(marker);
+                });
+            }
+
+            // 맛집 마커 추가 (기존 마커들 유지)
+            if (foodPlaces) {
+                foodPlaces.forEach((place, idx) => {
+                    const marker = new kakao.maps.Marker({
+                        position: new kakao.maps.LatLng(place.y, place.x),
+                        map: null // 기본적으로 숨김
+                    });
+
+                    const infowindow = new kakao.maps.InfoWindow({
+                        content: `<div style="padding:8px;font-size:12px;min-width:200px;">
+                            <div style="font-weight:bold;margin-bottom:4px;">🍽️ ${place.place_name}</div>
+                            ${place.phone ? `<div style="color:#666;font-size:11px;margin-bottom:2px;">📞 ${place.phone}</div>` : ''}
+                            ${place.rating ? `<div style="color:#666;font-size:11px;">⭐ ${place.rating}</div>` : ''}
+                        </div>`
+                    });
+                    
+                    kakao.maps.event.addListener(marker, 'click', function() {
+                        // 모든 인포윈도우 먼저 닫기
+                        closeAllInfowindows();
+                        // 해당 인포윈도우 열기
+                        infowindow.open(map, marker);
+                    });
+
+                    marker.infowindow = infowindow;
+                    marker.place = place; // place 데이터 저장
+                    foodMarkers.push(marker);
+                });
+            }
+
+            // 카페 마커 추가 (기존 마커들 유지)
+            if (cafePlaces) {
+                cafePlaces.forEach((place, idx) => {
+                    const marker = new kakao.maps.Marker({
+                        position: new kakao.maps.LatLng(place.y, place.x),
+                        map: null // 기본적으로 숨김
+                    });
+
+                    const infowindow = new kakao.maps.InfoWindow({
+                        content: `<div style="padding:8px;font-size:12px;min-width:200px;">
+                            <div style="font-weight:bold;margin-bottom:4px;">☕ ${place.place_name}</div>
+                            ${place.phone ? `<div style="color:#666;font-size:11px;margin-bottom:2px;">📞 ${place.phone}</div>` : ''}
+                            ${place.rating ? `<div style="color:#666;font-size:11px;">⭐ ${place.rating}</div>` : ''}
+                        </div>`
+                    });
+                    
+                    kakao.maps.event.addListener(marker, 'click', function() {
+                        // 모든 인포윈도우 먼저 닫기
+                        closeAllInfowindows();
+                        // 해당 인포윈도우 열기
+                        infowindow.open(map, marker);
+                    });
+
+                    marker.infowindow = infowindow;
+                    marker.place = place; // place 데이터 저장
+                    cafeMarkers.push(marker);
+                });
+            }
+        }
+
+        // 추천 리스트 업데이트
+        function updateRecommendList(places, listId, type) {
+            const list = document.getElementById(listId);
+            list.innerHTML = '';
+
+            if (places.length === 0) {
+                list.innerHTML = '<li class="loading">검색 결과가 없습니다.</li>';
+                return;
+            }
+
+            places.slice(0, 5).forEach((place, idx) => {
+                const li = document.createElement('li');
+                
+                // 맛집 추가 정보 생성
+                let additionalInfo = '';
+                if (type === 'food') {
+                    const category = place.category_name ? place.category_name.split('>').pop().trim() : '';
+                    const rating = place.rating || '';
+                    
+                    additionalInfo = `
+                        <div class="place-details">
+                            ${category ? `<span class="info-tag category">🍽️ ${category}</span>` : ''}
+                            ${rating ? `<span class="info-tag rating">⭐ ${rating}</span>` : ''}
+                        </div>
+                    `;
+                } else if (type === 'cafe') {
+                    const category = place.category_name ? place.category_name.split('>').pop().trim() : '';
+                    const rating = place.rating || '';
+                    
+                    additionalInfo = `
+                        <div class="place-details">
+                            ${category ? `<span class="info-tag category">☕ ${category}</span>` : ''}
+                            ${rating ? `<span class="info-tag rating">⭐ ${rating}</span>` : ''}
+                        </div>
+                    `;
+                }
+                
+                li.innerHTML = `
+                    <div class="place-info">
+                        <div class="place-name">${place.place_name}</div>
+                        <div class="place-address">${place.road_address_name || place.address_name}</div>
+                        ${additionalInfo}
+                    </div>
+                    <button class="detail-btn" onclick="openKakaoMapDetail('${place.place_name}', event)">상세보기</button>
+                `;
+                
+                // 클릭 시 해당 마커 인포윈도우 열고 지도 중심 이동
+                li.style.cursor = 'pointer';
+                li.addEventListener('click', function(e) {
+                    // 상세보기 버튼 클릭 시에는 마커 클릭 효과 적용하지 않음
+                    if (e.target.classList.contains('detail-btn')) {
+                        return;
+                    }
+                    
+                    // 선택 상태 설정
+                    if (type === 'food') {
+                        selectedFood = place;
+                        selectedCafe = null; // 다른 선택 해제
+                        updateFoodListSelection();
+                        updateCafeListSelection();
+                    } else if (type === 'cafe') {
+                        selectedCafe = place;
+                        selectedFood = null; // 다른 선택 해제
+                        updateFoodListSelection();
+                        updateCafeListSelection();
+                    }
+                    
+                    // 모든 인포윈도우 먼저 닫기
+                    closeAllInfowindows();
+                    
+                    if (type === 'food') {
+                        // 맛집 마커가 off 상태면 자동으로 on
+                        const foodToggle = document.getElementById('toggle-food-inline');
+                        if (!foodToggle.checked) {
+                            foodToggle.checked = true;
+                            setMarkersVisible(foodMarkers, true);
+                        }
+                        
+                        // 해당 맛집 마커 인포윈도우 열기
+                        if (foodMarkers[idx]) {
+                            foodMarkers[idx].infowindow.open(map, foodMarkers[idx]);
+                            map.setCenter(foodMarkers[idx].getPosition());
+                            map.setLevel(5);
+                        }
+                    } else if (type === 'cafe') {
+                        // 카페 마커가 off 상태면 자동으로 on
+                        const cafeToggle = document.getElementById('toggle-cafe-inline');
+                        if (!cafeToggle.checked) {
+                            cafeToggle.checked = true;
+                            setMarkersVisible(cafeMarkers, true);
+                        }
+                        
+                        // 해당 카페 마커 인포윈도우 열기
+                        if (cafeMarkers[idx]) {
+                            cafeMarkers[idx].infowindow.open(map, cafeMarkers[idx]);
+                            map.setCenter(cafeMarkers[idx].getPosition());
+                            map.setLevel(5);
+                        }
+                    }
+                });
+                list.appendChild(li);
+            });
+            
+            // 선택 상태 업데이트
+            if (type === 'food') {
+                updateFoodListSelection();
+            } else if (type === 'cafe') {
+                updateCafeListSelection();
+            }
+        }
+
+        // 테니스장 리스트 업데이트
+        function updateTennisList(places) {
+            const list = document.getElementById('tennis-list');
+            list.innerHTML = '';
+
+            if (!places || places.length === 0) {
+                list.innerHTML = '<li class="loading">검색 결과가 없습니다.</li>';
+                return;
+            }
+
+            places.slice(0, 5).forEach((place, idx) => {
+                const analysis = analyzeTennisPlace(place);
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div class="place-info">
+                        <div class="place-name">${place.place_name}</div>
+                        <div class="place-address">${place.road_address_name || place.address_name}</div>
+                        <div class="place-details">
+                            <span class="filter-tag ${analysis.isIndoor ? 'indoor' : 'outdoor'}">${analysis.isIndoor ? '🏟️ 실내' : '🌳 실외'}</span>
+                        </div>
+                    </div>
+                    <button class="detail-btn" onclick="openKakaoMapDetail('${place.place_name}', event)">상세보기</button>
+                `;
+                // 클릭 시 해당 마커 인포윈도우 열고 주변 맛집/카페 검색
+                li.style.cursor = 'pointer';
+                li.addEventListener('click', function(e) {
+                    // 상세보기 버튼 클릭 시에는 마커 클릭 효과 적용하지 않음
+                    if (e.target.classList.contains('detail-btn')) {
+                        return;
+                    }
+                    
+                    // 선택된 테니스장 설정
+                    setSelectedTennisCourt(place);
+                    
+                    // 맛집과 카페 선택 상태 초기화
+                    selectedFood = null;
+                    selectedCafe = null;
+                    updateFoodListSelection();
+                    updateCafeListSelection();
+                    
+                    // 모든 인포윈도우 먼저 닫기
+                    closeAllInfowindows();
+                    
+                    // 해당 마커 인포윈도우 열기
+                    if (markers[idx]) {
+                        markers[idx].infowindow.open(map, markers[idx]);
+                    }
+                    
+                    // 해당 테니스장 주변 맛집/카페 검색
+                    searchNearbyPlaces(place);
+                });
+                list.appendChild(li);
+            });
+        }
+
+        // 유효성 검사 메시지 표시 함수
+        function showValidationMessage(message, type) {
+            const validationDiv = document.getElementById('validation-message');
+            validationDiv.textContent = message;
+            validationDiv.className = `validation-message validation-${type}`;
+            validationDiv.style.display = 'block';
+            
+            // 5초 후 메시지 숨기기
+            setTimeout(() => {
+                validationDiv.style.display = 'none';
+            }, 5000);
+        }
+
+
+
+        // 메인 검색 함수
+        async function searchLocation() {
+            console.log('검색 함수 시작');
+            
+            const locationInput = document.getElementById('location-input');
+            const location = locationInput.value.trim();
+            
+            console.log('입력된 지역:', location);
+
+            if (!location) {
+                showValidationMessage('지역을 입력해주세요!', 'error');
+                return;
+            }
+
+            try {
+                console.log('검색 시작...');
+                
+                // 선택된 테니스장 초기화
+                selectedTennisCourt = null;
+                
+                // 선택된 맛집과 카페 초기화
+                selectedFood = null;
+                selectedCafe = null;
+                
+                // 로딩 상태 표시
+                document.getElementById('tennis-list').innerHTML = '<li class="loading">검색 중...</li>';
+                document.getElementById('food-list').innerHTML = '<li class="loading">검색 중...</li>';
+                document.getElementById('cafe-list').innerHTML = '<li class="loading">검색 중...</li>';
+
+                // 기존 마커 제거
+                removeMarkers();
+
+                // 테니스장 검색
+                console.log('테니스장 검색 중:', location + ' 테니스장');
+                const tennisPlaces = await searchPlaces(location + ' 테니스장', null);
+                console.log('테니스장 검색 결과:', tennisPlaces);
+                
+                if (tennisPlaces.length > 0) {
+                    // 모든 테니스장 데이터 저장
+                    allTennisPlaces = tennisPlaces;
+                    
+                    // 필터 적용하여 마커와 목록 표시
+                    applyFilters();
+                    
+                    // 첫 번째 테니스장 위치로 지도 중심 이동
+                    const firstTennis = tennisPlaces[0];
+                    const center = new kakao.maps.LatLng(firstTennis.y, firstTennis.x);
+                    map.setCenter(center);
+                    map.setLevel(5);
+
+                    // 주변 맛집 검색
+                    console.log('맛집 검색 중:', location + ' 맛집');
+                    const foodPlaces = await searchPlaces(location + ' 맛집', 'FD6');
+                    console.log('맛집 검색 결과:', foodPlaces);
+                    updateRecommendList(foodPlaces, 'food-list', 'food');
+
+                    // 주변 카페 검색
+                    console.log('카페 검색 중:', location + ' 카페');
+                    const cafePlaces = await searchPlaces(location + ' 카페', 'CE7');
+                    console.log('카페 검색 결과:', cafePlaces);
+                    updateRecommendList(cafePlaces, 'cafe-list', 'cafe');
+
+                    // 모든 마커 추가 (테니스장 + 맛집 + 카페)
+                    addMarkers(tennisPlaces, foodPlaces, cafePlaces);
+                    
+                    // 최근 검색어 저장
+                    saveRecentSearch(location);
+                    
+                    // 검색이력 창 닫기
+                    hideRecentSearches();
+                    
+                    // 검색 성공 메시지 표시
+                    showValidationMessage(`✅ ${location} 지역 검색이 완료되었습니다!`, 'success');
+                } else {
+                    console.log('테니스장을 찾을 수 없음');
+                    showValidationMessage('해당 지역에서 테니스장을 찾을 수 없습니다. 다른 지역을 시도해보세요.', 'error');
+                    document.getElementById('tennis-list').innerHTML = '<li class="error">해당 지역에서 테니스장을 찾을 수 없습니다.</li>';
+                    document.getElementById('food-list').innerHTML = '<li class="error">해당 지역에서 테니스장을 찾을 수 없습니다.</li>';
+                    document.getElementById('cafe-list').innerHTML = '<li class="error">해당 지역에서 테니스장을 찾을 수 없습니다.</li>';
+                }
+
+            } catch (error) {
+                console.log('검색 실패:', error.message);
+                
+                // 검색이력 창 닫기
+                hideRecentSearches();
+                
+                // 검색 실패 시 유효성 검사 메시지 표시
+                if (error.message === '검색에 실패했습니다.') {
+                    showValidationMessage('올바른 지역명을 입력해주세요. (예: 잠실, 강남, 홍대)', 'error');
+                } else {
+                    showValidationMessage('검색 중 오류가 발생했습니다. 다시 시도해주세요.', 'error');
+                }
+                
+                document.getElementById('tennis-list').innerHTML = '<li class="error">검색 결과를 찾을 수 없습니다.</li>';
+                document.getElementById('food-list').innerHTML = '<li class="error">검색 결과를 찾을 수 없습니다.</li>';
+                document.getElementById('cafe-list').innerHTML = '<li class="error">검색 결과를 찾을 수 없습니다.</li>';
+            }
+        }
+
+        // 이벤트 리스너 등록
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM 로드 완료');
+            
+            // 검색 버튼 클릭 이벤트
+            const searchBtn = document.getElementById('search-btn');
+            console.log('검색 버튼 찾음:', searchBtn);
+            
+            searchBtn.addEventListener('click', function() {
+                console.log('검색 버튼 클릭됨');
+                if (typeof kakao === 'undefined') {
+                    alert('카카오맵 API가 로드되지 않았습니다. 페이지를 새로고침해주세요.');
+                    return;
+                }
+                searchLocation();
+            });
+
+            // 엔터 키 이벤트
+            const locationInput = document.getElementById('location-input');
+            console.log('입력창 찾음:', locationInput);
+            
+            locationInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    console.log('엔터 키 입력됨');
+                    if (typeof kakao === 'undefined') {
+                        alert('카카오맵 API가 로드되지 않았습니다. 페이지를 새로고침해주세요.');
+                        return;
+                    }
+                    searchLocation();
+                }
+            });
+
+            // 최근 검색어 관련 이벤트
+            locationInput.addEventListener('focus', function() {
+                loadRecentSearches();
+                showRecentSearches();
+            });
+
+            locationInput.addEventListener('blur', function() {
+                // 약간의 지연을 두어 클릭 이벤트가 처리될 수 있도록 함
+                setTimeout(hideRecentSearches, 200);
+            });
+
+            // 페이지 클릭 시 최근 검색어 숨기기
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.input-container')) {
+                    hideRecentSearches();
+                }
+            });
+            
+
+
+
+
+            // 테니스장 필터 체크박스 이벤트
+            document.getElementById('filter-indoor').addEventListener('change', function() {
+                if (allTennisPlaces.length > 0) {
+                    applyFilters();
+                }
+            });
+            document.getElementById('filter-outdoor').addEventListener('change', function() {
+                if (allTennisPlaces.length > 0) {
+                    applyFilters();
+                }
+            });
+
+            // 인라인 마커 토글 이벤트
+            document.getElementById('toggle-food-inline').addEventListener('change', function(e) {
+                setMarkersVisible(foodMarkers, e.target.checked);
+            });
+            document.getElementById('toggle-cafe-inline').addEventListener('change', function(e) {
+                setMarkersVisible(cafeMarkers, e.target.checked);
+            });
+
+            console.log('이벤트 리스너 등록 완료');
+        });
+
+        // 카카오맵 상세보기 함수
+        function openKakaoMapDetail(placeName, event) {
+            // 이벤트 버블링 방지
+            event.stopPropagation();
+            
+            // 카카오맵 검색 URL 생성
+            const searchQuery = encodeURIComponent(placeName);
+            const kakaoMapUrl = `https://map.kakao.com/link/search/${searchQuery}`;
+            
+            // 새 탭에서 카카오맵 검색 결과 열기
+            window.open(kakaoMapUrl, '_blank');
+            
+            console.log(`카카오맵 상세보기 열기: ${placeName}`);
+        }
+
+        // API 로딩 완료 후 지도 초기화
+        window.onload = function() {
+            setTimeout(() => {
+                if (typeof kakao !== 'undefined') {
+                    console.log('카카오맵 API 로딩 성공');
+                    const mapInitialized = initMap();
+                    if (mapInitialized) {
+                        console.log('지도 초기화 완료');
+                    } else {
+                        console.log('지도 초기화 실패');
+                    }
+                } else {
+                    console.error('카카오맵 API 로딩 실패');
+                    document.getElementById('map').innerHTML = '<div style="padding: 20px; text-align: center; color: #c62828;">카카오맵 API 로딩에 실패했습니다.</div>';
+                }
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
